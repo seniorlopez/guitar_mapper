@@ -3,35 +3,61 @@ import { Midi } from '@tonejs/midi';
 
 export async function transcribeAudioToMidi(audioBuffer: AudioBuffer, onProgress: (pct: number) => void): Promise<Midi> {
     const targetSampleRate = 22050;
-    const resampledBuffer = await resampleBuffer(audioBuffer, targetSampleRate);
 
-    const basicPitch = new BasicPitch('/model/model.json');
+    console.log(`[AudioToMidi] Input: ${audioBuffer.duration}s @ ${audioBuffer.sampleRate}Hz`);
 
-    const framesPerSecond = targetSampleRate / 512; // 512 is default hop size
+    // 0. Normalize Audio (Crucial for ML models)
+    const normalizedBuffer = normalizeBuffer(audioBuffer);
 
-    // Run Inference
+    // 1. Resample
+    let resampledBuffer: AudioBuffer;
+    try {
+        resampledBuffer = await resampleBuffer(normalizedBuffer, targetSampleRate);
+    } catch (e) {
+        throw new Error(`Resampling failed: ${e}`);
+    }
+
+    console.log(`[AudioToMidi] Resampled: ${resampledBuffer.duration}s @ ${resampledBuffer.sampleRate}Hz`);
+
+    // Use CDN to ensure model availability (Avoid local server issues)
+    const modelUrl = 'https://unpkg.com/@spotify/basic-pitch@1.0.1/model/model.json';
+    const basicPitch = new BasicPitch(modelUrl);
+
+    // Basic uses FFT_HOP = 512 by default in Python, but 256 often in JS?
+    // Let's assume standard 512 for now. If notes are 2x fast, we switch.
+    const fftHop = 512;
+    const framesPerSecond = targetSampleRate / fftHop;
+
+    console.log(`[AudioToMidi] Inference Start. FPS: ${framesPerSecond}`);
+
     const noteEventsFrames = await new Promise<any[]>((resolve, reject) => {
         basicPitch.evaluateModel(
             resampledBuffer,
             (frames, onsets) => {
-                // Thresholds: onset=0.5, frame=0.3, minNoteLen=5 frames
-                const notes = outputToNotesPoly(frames, onsets, 0.5, 0.3, 5);
+                // Lowering thresholds slightly to be more generous
+                // onset=0.3 (was 0.5), frame=0.2 (was 0.3)
+                const notes = outputToNotesPoly(frames, onsets, 0.25, 0.2, 5); // very sensitive
                 resolve(notes);
             },
             (percent) => {
                 onProgress(percent);
             }
-        ).catch(e => reject(e));
+        ).catch(e => reject(new Error(`Model Error: ${e}`)));
     });
+
+    console.log(`[AudioToMidi] Inference Done. Found ${noteEventsFrames.length} events.`);
 
     const midi = new Midi();
     const track = midi.addTrack();
 
-    // Convert Frames to Seconds
+    console.log(`[AudioToMidi] Detected ${noteEventsFrames.length} notes.`);
+
     noteEventsFrames.forEach(n => {
-        // BasicPitch returns { startFrame, durationFrames, pitchMidi, amplitude }
         const startTime = n.startFrame / framesPerSecond;
         const duration = n.durationFrames / framesPerSecond;
+
+        // Safety: Ignore weird notes
+        if (duration <= 0) return;
 
         track.addNote({
             midi: n.pitchMidi,
@@ -41,17 +67,53 @@ export async function transcribeAudioToMidi(audioBuffer: AudioBuffer, onProgress
         });
     });
 
+    // Explicitly set name and ensure duration is correct?
+    // Tonejs Midi calculates duration dynamically from tracks.
     midi.name = "Audio Transcription";
+
+    if (noteEventsFrames.length === 0) {
+        console.warn("Zero notes detected. The model might not have loaded or audio is silent.");
+        // Add a dummy note to prove it parsed? No, throw.
+        throw new Error("No notes detected by AI model.");
+    }
+
     return midi;
+}
+
+function normalizeBuffer(buffer: AudioBuffer): AudioBuffer {
+    const data = buffer.getChannelData(0); // Assume mono or just take left
+    let max = 0;
+    for (let i = 0; i < data.length; i++) {
+        const abs = Math.abs(data[i]);
+        if (abs > max) max = abs;
+    }
+    if (max === 0) return buffer;
+
+    // Create new buffer
+    const ctx = new OfflineAudioContext(1, buffer.length, buffer.sampleRate);
+    const newBuf = ctx.createBuffer(1, buffer.length, buffer.sampleRate);
+    const newData = newBuf.getChannelData(0);
+
+    const scale = 0.95 / max; // Normalize to 0.95
+    for (let i = 0; i < data.length; i++) {
+        newData[i] = data[i] * scale;
+    }
+    return newBuf;
 }
 
 async function resampleBuffer(buffer: AudioBuffer, targetRate: number): Promise<AudioBuffer> {
     if (buffer.sampleRate === targetRate) return buffer;
-    const duration = buffer.duration;
-    const offlineCtx = new OfflineAudioContext(1, duration * targetRate, targetRate);
+
+    // OfflineAudioContext needs a valid length calculation
+    const ratio = buffer.sampleRate / targetRate;
+    const newLength = Math.ceil(buffer.length / ratio);
+
+    // BasicPitch works best with Mono.
+    const offlineCtx = new OfflineAudioContext(1, newLength, targetRate);
     const source = offlineCtx.createBufferSource();
     source.buffer = buffer;
     source.connect(offlineCtx.destination);
     source.start();
+
     return await offlineCtx.startRendering();
 }

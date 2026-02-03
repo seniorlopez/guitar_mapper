@@ -14,16 +14,24 @@ export function analyzeMidi(midi: Midi): ChordEvent[] {
 
     if (allNotes.length === 0) return [];
 
-    const duration = midi.duration;
+    // Safety: Clamp duration. Some MIDIs report huge duration. Max 10 mins for demo.
+    const duration = Math.min(midi.duration, 600);
+    if (!duration || duration <= 0) return [];
+
     const events: ChordEvent[] = [];
 
-    // Sampling rate: analyze every X seconds (e.g. 1/8th note approx or fixed 0.25s)
-    // Higher resolution = more noise. Lower = missing fast changes.
-    const step = 0.2;
+    // Sampling rate
+    const step = 0.25;
     let lastChordName = '';
     let currentEvent: ChordEvent | null = null;
 
+    // Safety: Protection against infinite loop
+    let iterations = 0;
+    const MAX_ITER = 10000;
+
     for (let time = 0; time < duration; time += step) {
+        if (iterations++ > MAX_ITER) break; // Emergency brake
+
         // Find notes active at this time
         // Note: 'active' means strictly overlapping 'time'.
         const activeNotes = allNotes
