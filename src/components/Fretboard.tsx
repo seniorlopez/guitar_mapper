@@ -1,0 +1,149 @@
+import React, { useMemo } from 'react';
+import { type Note, getInterval, INTERVALS } from '../core/notes';
+import { type Scale } from '../core/scales';
+import { generateFretboard, type FretboardPosition } from '../core/guitar';
+
+interface FretboardProps {
+    scale?: Scale;
+    activeNotes?: Note[];
+    root?: Note;
+}
+
+const FRET_WIDTH = 60; // Wider frets for visibility
+const STRING_HEIGHT = 40; // More vertical spacing
+const NUM_FRETS = 15;
+
+export const Fretboard: React.FC<FretboardProps> = ({ scale, activeNotes = [], root }) => {
+    const board = useMemo(() => generateFretboard(NUM_FRETS), []);
+
+    const getNoteStyle = (pos: FretboardPosition) => {
+        // 1. Specific Active Note (High Vis)
+        const activeMatch = activeNotes.find(n => n.midi === pos.note.midi);
+
+        if (activeMatch) {
+            let fill = '#fbbf24'; // Amber-400 (Golden)
+            let label: string = pos.note.name;
+            const radius = 14; // Larger
+            const opacity = 1;
+            const stroke = '#fff'; // White border for active
+            const strokeWidth = 2;
+            const fontWeight = '800';
+            let textColor = '#000';
+
+            if (root) {
+                const interval = getInterval(root.name, pos.note.name);
+                if (interval === INTERVALS.P1) {
+                    fill = '#ef4444'; // Red-500
+                    label = 'R';
+                    textColor = '#fff';
+                }
+                else if (interval === INTERVALS.M3 || interval === INTERVALS.m3) { fill = '#3b82f6'; textColor = '#fff'; } // Blue
+                else if (interval === INTERVALS.M7 || interval === INTERVALS.m7 || interval === INTERVALS.m6) { fill = '#10b981'; textColor = '#fff'; } // Green
+                else if (interval === INTERVALS.P5) { fill = '#f59e0b'; textColor = '#000'; } // Orange
+            }
+            return { fill, stroke, strokeWidth, radius, label, opacity, fontWeight, textColor };
+        }
+
+        // 2. Scale Hint (Ghost) - Now more visible per request
+        if (scale && scale.notes.includes(pos.note.name)) {
+            const isRoot = pos.note.name === scale.root;
+            const fill = isRoot ? '#c026d3' : '#525252'; // Fuchsia-600 or Neutral-600
+            const opacity = 0.6; // Increased from 0.4
+            const radius = 10; // Increased
+            const label = pos.note.name; // Show Note Name!
+
+            return { fill, stroke: 'none', strokeWidth: 0, radius, label: label as string, opacity, fontWeight: '500', textColor: '#ddd' };
+        }
+
+        // Invisible/bg
+        return { fill: 'transparent', stroke: 'none', strokeWidth: 0, radius: 0, label: '', opacity: 0, fontWeight: '400', textColor: 'transparent' };
+    };
+
+    return (
+        <div style={{
+            overflowX: 'auto',
+            padding: '40px 20px',
+            background: '#0a0a0a',
+            borderRadius: '16px',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+            border: '1px solid #222'
+        }}>
+            <svg width={NUM_FRETS * FRET_WIDTH + 60} height={6 * STRING_HEIGHT + 40}>
+                {/* Draw Frets */}
+                {Array.from({ length: NUM_FRETS + 1 }).map((_, i) => (
+                    <line
+                        key={`fret-${i}`}
+                        x1={i * FRET_WIDTH + 30}
+                        y1={10}
+                        x2={i * FRET_WIDTH + 30}
+                        y2={6 * STRING_HEIGHT + 10}
+                        stroke="#333"
+                        strokeWidth={i === 0 ? 6 : 2}
+                    />
+                ))}
+
+                {/* Draw Strings */}
+                {board.map((_, i) => (
+                    <line
+                        key={`string-${i}`}
+                        x1={30}
+                        y1={i * STRING_HEIGHT + 25}
+                        x2={NUM_FRETS * FRET_WIDTH + 30}
+                        y2={i * STRING_HEIGHT + 25}
+                        stroke="#444"
+                        strokeWidth={1 + (5 - i) * 0.6}
+                    />
+                ))}
+
+                {/* Draw Notes */}
+                {board.map((stringData) =>
+                    stringData.map((pos) => {
+                        const visualRow = 5 - pos.string;
+                        const { fill, stroke, strokeWidth, radius, label, opacity, fontWeight, textColor } = getNoteStyle(pos);
+
+                        if (opacity === 0) return null;
+
+                        return (
+                            <g key={`note-${pos.string}-${pos.fret}`} style={{ transition: 'all 0.1s ease' }}>
+                                <circle
+                                    cx={pos.fret * FRET_WIDTH + 30 - (pos.fret === 0 ? 15 : FRET_WIDTH / 2)}
+                                    cy={visualRow * STRING_HEIGHT + 25}
+                                    r={radius}
+                                    fill={fill}
+                                    stroke={stroke}
+                                    strokeWidth={strokeWidth}
+                                    fillOpacity={opacity}
+                                    strokeOpacity={opacity}
+                                />
+                                <text
+                                    x={pos.fret * FRET_WIDTH + 30 - (pos.fret === 0 ? 15 : FRET_WIDTH / 2)}
+                                    y={visualRow * STRING_HEIGHT + 25 + (radius / 2.5)} // Center vertically
+                                    fill={textColor}
+                                    fillOpacity={opacity}
+                                    fontSize={radius > 11 ? "12" : "10"}
+                                    textAnchor="middle"
+                                    pointerEvents="none"
+                                    fontFamily="Inter, sans-serif"
+                                    fontWeight={fontWeight}
+                                >
+                                    {label}
+                                </text>
+                            </g>
+                        );
+                    })
+                )}
+
+                {/* Fret Markers */}
+                {[3, 5, 7, 9, 12, 15].map(fret => (
+                    <circle
+                        key={`marker-${fret}`}
+                        cx={fret * FRET_WIDTH + 30 - FRET_WIDTH / 2}
+                        cy={6 * STRING_HEIGHT + 30}
+                        r={4}
+                        fill="#333"
+                    />
+                ))}
+            </svg>
+        </div>
+    );
+};
