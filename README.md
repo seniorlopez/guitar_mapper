@@ -59,3 +59,13 @@
 ---
 
 Built with ❤️ by [Senior Lopez](https://github.com/seniorlopez)
+
+## Changerlog 📜
+
+### [Current Session] - 2026-02-04
+- **Modes**: Split application into **Manual Mode** (Piano Input) and **Auto Mode** (Chord Builder).
+- **Reactive Fretboard**: The fretboard now resizes dynamically and supports adjustable fret counts (12-24) and zoom levels.
+- **Smart Analysis (Manual Mode)**: Automatically detects chords from 3-4 notes input on the piano and estimates the **Parent Key** to display the correct scale.
+- **Smart Logic (Auto Mode)**:
+- **Intelligent Scale Mapping**: Added logic to map Major Chords + Minor Pentatonic selections to the **Relative Minor** scale (e.g., C Maj7 -> A Minor Pentatonic).
+- **Compatibility Filtering**: The Scale dropdown now filters options based on the selected Chord Quality.
