@@ -14,7 +14,7 @@ const _9 = 2; // Same as M2
 // const _13 = 9; // Same as M6
 // const b13 = 8; // Same as m6
 
-const CHORD_SHAPES: Record<string, number[]> = {
+export const CHORD_SHAPES: Record<string, number[]> = {
     // Triads
     'Major': [I.P1, I.M3, I.P5],
     'Minor': [I.P1, I.m3, I.P5],
@@ -37,9 +37,7 @@ const CHORD_SHAPES: Record<string, number[]> = {
     'min9': [I.P1, I.m3, I.P5, I.m7, _9],
     '9': [I.P1, I.M3, I.P5, I.m7, _9], // Dom9
     '7b9': [I.P1, I.M3, I.P5, I.m7, b9],
-    '7#9': [I.P1, I.M3, I.P5, I.m7, 3], // #9 = m3 enharmonic? Careful. 3 semitones is m3. #9 is 3 semitones. 
-    // But in Dom7#9 (Hendrix), we have M3(4) AND #9(3). 
-    // Browser MIDI might not distinguish enharmonics easily without context.
+    '7#9': [I.P1, I.M3, I.P5, I.m7, 3],
 
     // 6ths
     '6': [I.P1, I.M3, I.P5, I.M6],
@@ -79,4 +77,14 @@ export function detectChord(notes: Note[]): ChordResult | null {
     }
 
     return bestMatch;
+}
+
+import { getNoteFromMidi, getMidiNumber } from './notes';
+
+export function getChordNotes(root: NoteName, quality: string, octave: number = 3): Note[] {
+    const intervals = CHORD_SHAPES[quality];
+    if (!intervals) return [];
+
+    const rootMidi = getMidiNumber(root, octave);
+    return intervals.map(interval => getNoteFromMidi(rootMidi + interval));
 }

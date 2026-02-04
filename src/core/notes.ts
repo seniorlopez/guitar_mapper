@@ -45,3 +45,8 @@ export function transpose(note: NoteName, semitones: number): NoteName {
     const newIdx = (noteIdx + semitones) % 12;
     return NOTES[newIdx];
 }
+
+export function getMidiNumber(note: NoteName, octave: number): number {
+    const noteIdx = NOTE_TO_INDEX[note];
+    return (octave + 1) * 12 + noteIdx;
+}

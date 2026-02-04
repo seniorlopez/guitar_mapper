@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { type Note, getInterval, INTERVALS } from '../core/notes';
 import { type Scale } from '../core/scales';
 import { generateFretboard, type FretboardPosition } from '../core/guitar';
@@ -7,26 +7,59 @@ interface FretboardProps {
     scale?: Scale;
     activeNotes?: Note[];
     root?: Note;
+    fretCount?: number;
+    zoom?: number;
 }
 
-const FRET_WIDTH = 60; // Wider frets for visibility
-const STRING_HEIGHT = 40; // More vertical spacing
-const NUM_FRETS = 15;
+const BASE_STRING_HEIGHT = 40;
 
-export const Fretboard: React.FC<FretboardProps> = ({ scale, activeNotes = [], root }) => {
-    const board = useMemo(() => generateFretboard(NUM_FRETS), []);
+export const Fretboard: React.FC<FretboardProps> = ({
+    scale,
+    activeNotes = [],
+    root,
+    fretCount = 24,
+    zoom = 1
+}) => {
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [containerWidth, setContainerWidth] = useState(1000);
+
+    useEffect(() => {
+        if (!containerRef.current) return;
+        const resizeObserver = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+                setContainerWidth(entry.contentRect.width);
+            }
+        });
+        resizeObserver.observe(containerRef.current);
+        return () => resizeObserver.disconnect();
+    }, []);
+
+    // Calculate dynamic dimensions
+    // We reserve some padding (e.g. 60px total)
+    // If zoom is 1, we fit exactly.
+    const availableWidth = containerWidth - 60;
+    const baseFretWidth = availableWidth / fretCount;
+
+    // Apply zoom (clamp minimum width so it doesn't get too small)
+    const FRET_WIDTH = Math.max(30, baseFretWidth * zoom);
+    const STRING_HEIGHT = BASE_STRING_HEIGHT * Math.max(0.8, zoom); // Scale height slightly less aggressively
+
+    const board = useMemo(() => generateFretboard(fretCount), [fretCount]);
 
     const getNoteStyle = (pos: FretboardPosition) => {
         // 1. Specific Active Note (High Vis)
         const activeMatch = activeNotes.find(n => n.midi === pos.note.midi);
 
+        // Scale visual elements with zoom
+        const scaleFactor = Math.max(0.8, zoom);
+
         if (activeMatch) {
             let fill = '#fbbf24'; // Amber-400 (Golden)
             let label: string = pos.note.name;
-            const radius = 14; // Larger
+            const radius = 14 * scaleFactor;
             const opacity = 1;
             const stroke = '#fff'; // White border for active
-            const strokeWidth = 2;
+            const strokeWidth = 2 * scaleFactor;
             const fontWeight = '800';
             let textColor = '#000';
 
@@ -49,7 +82,7 @@ export const Fretboard: React.FC<FretboardProps> = ({ scale, activeNotes = [], r
             const isRoot = pos.note.name === scale.root;
             const fill = isRoot ? '#c026d3' : '#525252'; // Fuchsia-600 or Neutral-600
             const opacity = 0.6; // Increased from 0.4
-            const radius = 10; // Increased
+            const radius = 10 * scaleFactor;
             const label = pos.note.name; // Show Note Name!
 
             return { fill, stroke: 'none', strokeWidth: 0, radius, label: label as string, opacity, fontWeight: '500', textColor: '#ddd' };
@@ -60,17 +93,21 @@ export const Fretboard: React.FC<FretboardProps> = ({ scale, activeNotes = [], r
     };
 
     return (
-        <div style={{
-            overflowX: 'auto',
-            padding: '40px 20px',
-            background: '#0a0a0a',
-            borderRadius: '16px',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-            border: '1px solid #222'
-        }}>
-            <svg width={NUM_FRETS * FRET_WIDTH + 60} height={6 * STRING_HEIGHT + 40}>
+        <div
+            ref={containerRef}
+            style={{
+                width: '100%',
+                overflowX: 'auto', // Allow scrolling if zoomed too much
+                padding: '40px 20px',
+                background: '#0a0a0a',
+                borderRadius: '16px',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+                border: '1px solid #222'
+            }}
+        >
+            <svg width={fretCount * FRET_WIDTH + 60} height={6 * STRING_HEIGHT + 40}>
                 {/* Draw Frets */}
-                {Array.from({ length: NUM_FRETS + 1 }).map((_, i) => (
+                {Array.from({ length: fretCount + 1 }).map((_, i) => (
                     <line
                         key={`fret-${i}`}
                         x1={i * FRET_WIDTH + 30}
@@ -88,7 +125,7 @@ export const Fretboard: React.FC<FretboardProps> = ({ scale, activeNotes = [], r
                         key={`string-${i}`}
                         x1={30}
                         y1={i * STRING_HEIGHT + 25}
-                        x2={NUM_FRETS * FRET_WIDTH + 30}
+                        x2={fretCount * FRET_WIDTH + 30}
                         y2={i * STRING_HEIGHT + 25}
                         stroke="#444"
                         strokeWidth={1 + (5 - i) * 0.6}
@@ -134,15 +171,17 @@ export const Fretboard: React.FC<FretboardProps> = ({ scale, activeNotes = [], r
                 )}
 
                 {/* Fret Markers */}
-                {[3, 5, 7, 9, 12, 15].map(fret => (
-                    <circle
-                        key={`marker-${fret}`}
-                        cx={fret * FRET_WIDTH + 30 - FRET_WIDTH / 2}
-                        cy={6 * STRING_HEIGHT + 30}
-                        r={4}
-                        fill="#333"
-                    />
-                ))}
+                {[3, 5, 7, 9, 12, 15, 17, 19, 21, 24]
+                    .filter(f => f <= fretCount)
+                    .map(fret => (
+                        <circle
+                            key={`marker-${fret}`}
+                            cx={fret * FRET_WIDTH + 30 - FRET_WIDTH / 2}
+                            cy={6 * STRING_HEIGHT + 30}
+                            r={4}
+                            fill="#333"
+                        />
+                    ))}
             </svg>
         </div>
     );
