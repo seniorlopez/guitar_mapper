@@ -5,7 +5,8 @@ export type ScaleType =
     | 'Minor'
     | 'Harmonic Minor'
     | 'Melodic Minor'
-    | 'Ionian' | 'Dorian' | 'Phrygian' | 'Lydian' | 'Mixolydian' | 'Aeolian' | 'Locrian';
+    | 'Ionian' | 'Dorian' | 'Phrygian' | 'Lydian' | 'Mixolydian' | 'Aeolian' | 'Locrian'
+    | 'Major Pentatonic' | 'Minor Pentatonic';
 
 export interface Scale {
     root: NoteName;
@@ -25,6 +26,8 @@ const SCALE_INTERVALS: Record<ScaleType, number[]> = {
     'Mixolydian': [0, 2, 4, 5, 7, 9, 10],
     'Aeolian': [0, 2, 3, 5, 7, 8, 10], // Same as Minor
     'Locrian': [0, 1, 3, 5, 6, 8, 10],
+    'Major Pentatonic': [0, 2, 4, 7, 9],
+    'Minor Pentatonic': [0, 3, 5, 7, 10],
 };
 
 export function generateScale(root: NoteName, type: ScaleType): Scale {

@@ -9,6 +9,7 @@ function App() {
   const [activeNotes, setActiveNotes] = useState<Note[]>([]);
   const [detectedChord, setDetectedChord] = useState<ChordResult | null>(null);
   const [targetScale, setTargetScale] = useState<Scale | undefined>();
+  const [scaleFamily, setScaleFamily] = useState<'Diatonic' | 'Pentatonic'>('Diatonic');
   const [selectedScaleType, setSelectedScaleType] = useState<ScaleType>('Major');
 
   // Logic: Chord Detection & Scale Mapping
@@ -40,10 +41,28 @@ function App() {
     });
   };
 
-  const SCALE_TYPES: ScaleType[] = [
+
+
+  const DIATONIC_SCALES: ScaleType[] = [
     'Major', 'Minor', 'Harmonic Minor', 'Melodic Minor',
     'Ionian', 'Dorian', 'Phrygian', 'Lydian', 'Mixolydian', 'Aeolian', 'Locrian'
   ];
+
+  const PENTATONIC_SCALES: ScaleType[] = [
+    'Major Pentatonic', 'Minor Pentatonic'
+  ];
+
+  const AVAILABLE_SCALES = scaleFamily === 'Diatonic' ? DIATONIC_SCALES : PENTATONIC_SCALES;
+
+  // Handle family switch to ensure valid scale type
+  const handleFamilyChange = (family: 'Diatonic' | 'Pentatonic') => {
+    setScaleFamily(family);
+    if (family === 'Diatonic') {
+      setSelectedScaleType('Major');
+    } else {
+      setSelectedScaleType('Major Pentatonic');
+    }
+  };
 
   return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: '#050505', color: '#eee' }}>
@@ -59,15 +78,51 @@ function App() {
               {detectedChord ? detectedChord.name : 'Play Chords...'}
             </h1>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-            <label style={{ fontSize: '0.75rem', color: '#666', textTransform: 'uppercase' }}>Magic Scale</label>
-            <select
-              value={selectedScaleType}
-              onChange={(e) => setSelectedScaleType(e.target.value as ScaleType)}
-              style={{ padding: '5px 10px', borderRadius: '4px', background: '#222', color: 'white', border: '1px solid #444' }}
-            >
-              {SCALE_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-            </select>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+              <label style={{ fontSize: '0.75rem', color: '#666', textTransform: 'uppercase' }}>Scale Family</label>
+              <div style={{ display: 'flex', background: '#222', borderRadius: '4px', border: '1px solid #444' }}>
+                <button
+                  onClick={() => handleFamilyChange('Diatonic')}
+                  style={{
+                    padding: '5px 10px',
+                    background: scaleFamily === 'Diatonic' ? '#444' : 'transparent',
+                    color: scaleFamily === 'Diatonic' ? '#fff' : '#888',
+                    border: 'none',
+                    cursor: 'pointer',
+                    borderRadius: '3px 0 0 3px',
+                    fontSize: '0.8rem'
+                  }}
+                >
+                  Diatonic
+                </button>
+                <button
+                  onClick={() => handleFamilyChange('Pentatonic')}
+                  style={{
+                    padding: '5px 10px',
+                    background: scaleFamily === 'Pentatonic' ? '#444' : 'transparent',
+                    color: scaleFamily === 'Pentatonic' ? '#fff' : '#888',
+                    border: 'none',
+                    cursor: 'pointer',
+                    borderRadius: '0 3px 3px 0',
+                    fontSize: '0.8rem'
+                  }}
+                >
+                  Pentatonic
+                </button>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+              <label style={{ fontSize: '0.75rem', color: '#666', textTransform: 'uppercase' }}>Magic Scale</label>
+              <select
+                value={selectedScaleType}
+                onChange={(e) => setSelectedScaleType(e.target.value as ScaleType)}
+                style={{ padding: '5px 10px', borderRadius: '4px', background: '#222', color: 'white', border: '1px solid #444', height: '100%' }}
+              >
+                {AVAILABLE_SCALES.map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
+            </div>
           </div>
         </div>
 
