@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { type Note, transpose, type NoteName } from './core/notes';
 import { generateScale, type Scale, type ScaleType } from './core/scales';
 import { detectChord, type ChordResult } from './core/chords';
@@ -41,6 +41,15 @@ function App() {
       setDetectedChord(null);
     }
   }, [activeNotes]);
+
+  // Check for Scale Mismatch (Manual Mode)
+  const isScaleMismatch = useMemo(() => {
+    if (appMode !== 'MANUAL' || !targetScale || activeNotes.length === 0) return false;
+
+    const scaleNoteSet = new Set(targetScale.notes);
+    // Are there any active notes NOT in the set?
+    return activeNotes.some(n => !scaleNoteSet.has(n.name));
+  }, [appMode, targetScale, activeNotes]);
 
   // 2. SMART MANUAL MODE ANALYZER
   useEffect(() => {
@@ -159,6 +168,17 @@ function App() {
             {/* Note Count Warning for Manual Mode */}
             {appMode === 'MANUAL' && activeNotes.length > 4 && (
               <span style={{ color: '#ef4444', fontSize: '0.8rem', fontWeight: 600 }}>TOO MANY NOTES (MAX 4)</span>
+            )}
+            {isScaleMismatch && (
+              <div style={{
+                marginTop: '5px',
+                display: 'inline-flex', alignItems: 'center', gap: '6px',
+                color: '#f59e0b', fontSize: '0.9rem', fontWeight: 500,
+                background: 'rgba(245, 158, 11, 0.1)', padding: '4px 8px', borderRadius: '4px'
+              }}>
+                <span style={{ fontSize: '1rem' }}>⚠️</span>
+                <span>Notes outside scale</span>
+              </div>
             )}
           </div>
 
