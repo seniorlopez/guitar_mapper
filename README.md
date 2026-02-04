@@ -69,3 +69,4 @@ Built with ❤️ by [Senior Lopez](https://github.com/seniorlopez)
 - **Smart Logic (Auto Mode)**:
 - **Intelligent Scale Mapping**: Added logic to map Major Chords + Minor Pentatonic selections to the **Relative Minor** scale (e.g., C Maj7 -> A Minor Pentatonic).
 - **Compatibility Filtering**: The Scale dropdown now filters options based on the selected Chord Quality.
+- **Scale Mismatch Warning**: Displays a subtle warning in Manual Mode when played notes do not fit the selected scale.
