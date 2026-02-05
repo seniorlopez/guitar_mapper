@@ -200,32 +200,38 @@ function App() {
         {instrument === 'CUSTOM' && (
           <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px', background: 'rgba(0,0,0,0.2)' }}>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Adjust Pitches (Low to High)</span>
-            {customTuning.map((pitch, i) => {
-              const note = getNoteFromMidi(pitch);
-              return (
-                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-main)', padding: '6px 10px', borderRadius: '6px' }}>
-                  <span style={{ fontSize: '0.8rem', color: 'var(--secondary)', fontWeight: 600 }}>Str {i + 1}</span>
+            {/* Render from High String (1) to Low String (N) */}
+            {customTuning
+              .map((pitch, i) => ({ pitch, index: i }))
+              .reverse()
+              .map(({ pitch, index }) => {
+                const note = getNoteFromMidi(pitch);
+                const stringNum = customTuning.length - index; // e.g. 6 - 5 = 1 (Top), 6 - 0 = 6 (Bottom)
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <button
-                      onClick={() => { const newT = [...customTuning]; newT[i] -= 1; setCustomTuning(newT); }}
-                      className="btn-secondary"
-                      style={{ padding: '2px 8px', height: '28px', display: 'flex', alignItems: 'center' }}
-                    >-</button>
+                return (
+                  <div key={index} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-main)', padding: '6px 10px', borderRadius: '6px' }}>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--secondary)', fontWeight: 600 }}>Str {stringNum}</span>
 
-                    <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--warning)', width: '24px', textAlign: 'center' }}>
-                      {note.name}
-                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <button
+                        onClick={() => { const newT = [...customTuning]; newT[index] -= 1; setCustomTuning(newT); }}
+                        className="btn-secondary"
+                        style={{ padding: '2px 8px', height: '28px', display: 'flex', alignItems: 'center' }}
+                      >-</button>
 
-                    <button
-                      onClick={() => { const newT = [...customTuning]; newT[i] += 1; setCustomTuning(newT); }}
-                      className="btn-secondary"
-                      style={{ padding: '2px 8px', height: '28px', display: 'flex', alignItems: 'center' }}
-                    >+</button>
+                      <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--warning)', width: '24px', textAlign: 'center' }}>
+                        {note.name}
+                      </span>
+
+                      <button
+                        onClick={() => { const newT = [...customTuning]; newT[index] += 1; setCustomTuning(newT); }}
+                        className="btn-secondary"
+                        style={{ padding: '2px 8px', height: '28px', display: 'flex', alignItems: 'center' }}
+                      >+</button>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
           </div>
         )}
       </div>
