@@ -18,24 +18,9 @@ export const ChordBuilder: React.FC<ChordBuilderProps> = ({ onChordBuilt, onScal
     const handleBuild = () => {
         const notes = getChordNotes(root, quality, 3); // Default to middle octave
         onChordBuilt(notes, root, quality);
-
-        // Auto-select a corresponding scale type if implied?
-        // Logic: specific mapping from Chord Quality -> Scale Type
-        // let impliedScale: ScaleType = 'Major';
-        // if (quality.includes('Minor') || quality === 'm7' || quality === 'min7') impliedScale = 'Minor';
-        // if (quality === 'Dom7') impliedScale = 'Mixolydian';
-        // if (quality === 'Maj7') impliedScale = 'Major'; // Ionian
-        // if (quality === 'm7b5') impliedScale = 'Locrian';
-
-        // But respect the user's explicit scale choice if we want.
-        // The prompt says "Si lo escoges, te pone la escala correspondiente que elijas del drop down".
-        // This implies the dropdown *controls* the scale mapping.
-        // So we should just trigger the callback with the currently selected ScaleType from the dropdown.
         onScaleSelect(scaleType);
     };
 
-    // Auto-build when changes happen? Or explicit button?
-    // "quedo bien perrisimo"... "Si lo escoges, te pone..." -> Immediate reaction is best for "feeling premium".
     useEffect(() => {
         handleBuild();
     }, [root, quality, scaleType]);
@@ -59,35 +44,27 @@ export const ChordBuilder: React.FC<ChordBuilderProps> = ({ onChordBuilt, onScal
         if (currentQuality === 'm7b5' || currentQuality === 'Dim') {
             return dimScales;
         }
-
-        // Default show all if unsure
         return null;
     };
 
     const compatibleScales = getCompatibleScales(quality);
-
-    // Helper to check if a specific scale should be shown
     const shouldShow = (s: ScaleType) => compatibleScales ? compatibleScales.includes(s) : true;
 
     return (
-        <div style={{
-            background: '#1a1a1a',
-            padding: '15px',
-            borderRadius: '8px',
-            border: '1px solid #333',
+        <div className="card" style={{
             display: 'flex',
             flexDirection: 'column',
-            gap: '10px',
-            width: '240px'
+            gap: '12px',
         }}>
-            <h3 style={{ margin: 0, fontSize: '0.9rem', color: '#888', textTransform: 'uppercase' }}>Chord Builder</h3>
+            <h3 className="label-sm" style={{ margin: 0 }}>Chord Builder</h3>
 
             {/* Root Selector */}
-            <div style={{ display: 'flex', gap: '5px' }}>
+            <div style={{ display: 'flex', gap: '8px' }}>
                 <select
                     value={root}
                     onChange={(e) => setRoot(e.target.value as NoteName)}
-                    style={{ flex: 1, padding: '5px', background: '#222', color: '#fff', border: '1px solid #444', borderRadius: '4px' }}
+                    className="select-control"
+                    style={{ flex: 1 }}
                 >
                     {NOTES.map(n => <option key={n} value={n}>{n}</option>)}
                 </select>
@@ -96,19 +73,21 @@ export const ChordBuilder: React.FC<ChordBuilderProps> = ({ onChordBuilt, onScal
                 <select
                     value={quality}
                     onChange={(e) => setQuality(e.target.value)}
-                    style={{ flex: 2, padding: '5px', background: '#222', color: '#fff', border: '1px solid #444', borderRadius: '4px' }}
+                    className="select-control"
+                    style={{ flex: 2 }}
                 >
                     {qualities.map(q => <option key={q} value={q}>{q}</option>)}
                 </select>
             </div>
 
             {/* Scale Context Selector */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                <label style={{ fontSize: '0.7rem', color: '#666' }}>Target Scale context</label>
+            <div className="input-group">
+                <label className="label-sm">Target Scale context</label>
                 <select
                     value={scaleType}
                     onChange={(e) => setScaleType(e.target.value as ScaleType)}
-                    style={{ width: '100%', padding: '5px', background: '#222', color: '#fff', border: '1px solid #444', borderRadius: '4px' }}
+                    className="select-control"
+                    style={{ width: '100%' }}
                 >
                     <optgroup label="Diatonic">
                         {shouldShow('Major') && <option value="Major">Major (Ionian)</option>}

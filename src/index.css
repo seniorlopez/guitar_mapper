@@ -1,21 +1,48 @@
 @import "@fontsource/inter";
 
 :root {
-  font-family: 'Inter', sans-serif;
+  /* -- Palette -- */
+  /* Main Backgrounds */
+  --bg-main: #0f172a;       /* Slate 900 */
+  --bg-panel: #1e293b;      /* Slate 800 */
+  --bg-card: #1e293b;       /* Slate 800 */
+  --bg-input: #334155;      /* Slate 700 */
+  
+  /* Accents */
+  --primary: #06b6d4;       /* Cyan 500 */
+  --primary-hover: #0891b2; /* Cyan 600 */
+  --secondary: #64748b;     /* Slate 500 */
+  --accent-glow: rgba(6, 182, 212, 0.4);
+
+  /* Status Colors (aligned with theme) */
+  --risk: #ef4444;          /* Red 500 */
+  --warning: #f59e0b;       /* Amber 500 */
+  --success: #10b981;       /* Emerald 500 */
+  
+  /* Text */
+  --text-main: #f8fafc;     /* Slate 50 */
+  --text-muted: #94a3b8;    /* Slate 400 */
+  
+  /* Borders */
+  --border-subtle: #334155; /* Slate 700 */
+  --border-focus: #06b6d4;  /* Cyan 500 */
+
+  /* Globals */
+  font-family: 'Inter', system-ui, sans-serif;
   line-height: 1.5;
-  font-weight: 400;
   color-scheme: dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #050505;
+  color: var(--text-main);
+  background-color: var(--bg-main);
 }
 
+/* Reset & Base */
 body {
   margin: 0;
   display: flex;
-  place-items: center;
   min-width: 320px;
   min-height: 100vh;
-  overflow: hidden; /* Prevent body scroll if piano is fixed */
+  overflow: hidden;
+  background-color: var(--bg-main);
 }
 
 #root {
@@ -25,28 +52,117 @@ body {
   flex-direction: column;
 }
 
-/* Scrollbar styling */
+/* Scrollbars */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #111;
+  background: var(--bg-main);
 }
 ::-webkit-scrollbar-thumb {
-  background: #333;
+  background: var(--bg-input);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: var(--secondary);
+}
+
+/* --- Utility Classes --- */
+.panel {
+  background: var(--bg-panel);
+  border-right: 1px solid var(--border-subtle);
+}
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.btn {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+}
+.btn-primary:hover {
+  background: var(--primary-hover);
+  box-shadow: 0 0 15px var(--accent-glow);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border-subtle);
+}
+.btn-secondary:hover {
+  background: var(--bg-input);
+  color: var(--text-main);
+  border-color: var(--text-muted);
+}
+
+.btn-active {
+  background: var(--bg-input);
+  color: var(--primary);
+  border: 1px solid var(--primary);
+  box-shadow: 0 0 10px var(--accent-glow);
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.label-sm {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.select-control {
+    background: var(--bg-input);
+    color: var(--text-main);
+    border: 1px solid var(--border-subtle);
+    padding: 0.6rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    outline: none;
+    transition: box-shadow 0.2s;
+}
+.select-control:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2);
+}
+
+input[type="range"] {
+    accent-color: var(--primary);
 }
 
 /* Animations */
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
+    from { opacity: 0; transform: translateY(5px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
 .fade-in {
-    animation: fadeIn 0.5s ease-out forwards;
+    animation: fadeIn 0.4s ease-out forwards;
+}
+
+/* Glow Text */
+.glow-text {
+    text-shadow: 0 0 20px var(--accent-glow);
 }

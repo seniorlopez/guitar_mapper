@@ -60,13 +60,10 @@
 
 Built with ❤️ by [Senior Lopez](https://github.com/seniorlopez)
 
-## Changerlog 📜
+### [UI Overhaul & Custom Tuning] - 2026-02-05
+- **Domotic UI**: Complete visual overhaul with a dark Slate/Cyan theme, glassmorphism headers, and polished components.
+- **Design System**: Implemented a robust CSS variable system for consistent styling.
+- **Custom Tuning Support**: Added "Custom / Manual" instrument option to adjust individual string pitches.
+- **Modes Refactor**: Distinct Manual (Piano Input) and Auto (Chord Builder) modes for better workflow.
+- **Smart Analysis**: Enhanced logic for parent key estimation and scale mapping.
 
-### [Current Session] - 2026-02-04
-- **Modes**: Split application into **Manual Mode** (Piano Input) and **Auto Mode** (Chord Builder).
-- **Reactive Fretboard**: The fretboard now resizes dynamically and supports adjustable fret counts (12-24) and zoom levels.
-- **Smart Analysis (Manual Mode)**: Automatically detects chords from 3-4 notes input on the piano and estimates the **Parent Key** to display the correct scale.
-- **Smart Logic (Auto Mode)**:
-- **Intelligent Scale Mapping**: Added logic to map Major Chords + Minor Pentatonic selections to the **Relative Minor** scale (e.g., C Maj7 -> A Minor Pentatonic).
-- **Compatibility Filtering**: The Scale dropdown now filters options based on the selected Chord Quality.
-- **Scale Mismatch Warning**: Displays a subtle warning in Manual Mode when played notes do not fit the selected scale.

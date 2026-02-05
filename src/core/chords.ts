@@ -1,4 +1,4 @@
-import { type Note, type NoteName, getInterval, INTERVALS } from './notes';
+import { type Note, type NoteName, getInterval, INTERVALS, getNoteFromMidi, getMidiNumber } from './notes';
 
 export interface ChordResult {
     root: NoteName;
@@ -79,7 +79,7 @@ export function detectChord(notes: Note[]): ChordResult | null {
     return bestMatch;
 }
 
-import { getNoteFromMidi, getMidiNumber } from './notes';
+
 
 export function getChordNotes(root: NoteName, quality: string, octave: number = 3): Note[] {
     const intervals = CHORD_SHAPES[quality];

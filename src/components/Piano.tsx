@@ -25,10 +25,10 @@ export const Piano: React.FC<PianoProps> = ({
         <div style={{
             display: 'flex',
             position: 'relative',
-            height: '100%',  // Fill container
-            background: '#151515',
-            padding: '0 20px', // Horizontal padding for edge safety
-            alignItems: 'flex-start' // Keys hang from top of bar
+            height: '100%',
+            background: 'var(--bg-panel)',
+            padding: '0 20px',
+            alignItems: 'flex-start'
         }}>
             {keys.map((note) => {
                 const black = isBlack(note.name);
@@ -39,12 +39,13 @@ export const Piano: React.FC<PianoProps> = ({
                         <div
                             key={note.midi}
                             onClick={() => onToggleNote(note)}
+                            className="piano-key black"
                             style={{
                                 width: '28px',
-                                height: '65%', // Black keys shorter
-                                background: isActive ? '#facc15' : 'black',
-                                color: isActive ? 'black' : 'transparent',
-                                border: '1px solid #333',
+                                height: '60%',
+                                background: isActive ? 'var(--primary)' : '#1e1e1e',
+                                color: isActive ? '#fff' : 'transparent',
+                                border: '1px solid #000',
                                 borderTop: 'none',
                                 borderRadius: '0 0 4px 4px',
                                 marginLeft: '-14px',
@@ -66,12 +67,13 @@ export const Piano: React.FC<PianoProps> = ({
                         <div
                             key={note.midi}
                             onClick={() => onToggleNote(note)}
+                            className="piano-key white"
                             style={{
                                 width: '42px',
-                                height: '100%', // Full height
-                                background: isActive ? '#60a5fa' : '#e5e5e5', // White keys off-white
-                                color: isActive ? 'black' : '#333',
-                                border: '1px solid #111', // Darker dividers
+                                height: '100%',
+                                background: isActive ? 'rgba(6, 182, 212, 0.2)' : '#e2e8f0', // Slight hint of primary when active, else slate-200
+                                color: isActive ? 'var(--primary)' : '#333',
+                                border: '1px solid #94a3b8',
                                 borderTop: 'none',
                                 borderRadius: '0 0 6px 6px',
                                 zIndex: 1,
@@ -82,7 +84,7 @@ export const Piano: React.FC<PianoProps> = ({
                                 fontSize: '11px',
                                 fontWeight: 'bold',
                                 paddingBottom: '8px',
-                                boxShadow: 'inset 0 -5px 10px rgba(0,0,0,0.1)'
+                                boxShadow: isActive ? 'inset 0 0 10px var(--primary)' : 'inset 0 -5px 10px rgba(0,0,0,0.1)'
                             }}
                         >
                             {isActive ? note.name : ''}
